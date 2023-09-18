@@ -1,31 +1,115 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import API_BASE_URL from "../apiConfig/APIConfig";
-// const header = {
-//   headers: {
-//     Authorization: `Bearer ${token}`,
-//     "Content-Type": "application/json", // Set the content type if needed
-//   },
-// };
-
-//LOGIN FIRST
+import axios from "axios";
+import { useToken, useLogin } from "../context/Context";
+import { useNavigate } from "react-router-dom";
+import { message } from "antd";
+//import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 function AddItem() {
-  // Define state variables for form inputs
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [photo, setPhoto] = useState(null);
-  const [price, setPrice] = useState("");
-  const [imageURL, setImageURL] = useState("");
-  const [imageFile, setImageFile] = useState(null);
+  const token = useToken();
 
-  // Handle form submission
-  const handleSubmit = (e) => {
+  const isloggedIn = useLogin();
+
+  const [itemDTO, setItemDTO] = useState({
+    title: "",
+    description: "",
+    itemPhoto: "",
+    price: 0.0,
+    categoryID: [],
+  });
+
+  const [categories, setCategories] = useState([
+    {
+      id: "",
+      categoryName: "",
+      categoryPhoto: "",
+    },
+  ]);
+
+  const navigate = useNavigate();
+
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const success = () => {
+    messageApi.open({
+      type: "success",
+      content: "Item Saved Successfully!!",
+    });
+  };
+
+  const header = {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json", // Set the content type if needed
+    },
+  };
+
+  const handleCategoryChange = (categoryId) => {
+    // Check if the category is already selected
+    const isCategorySelected = itemDTO.categoryID.includes(categoryId);
+
+    // If selected, remove it; otherwise, add it
+    if (isCategorySelected) {
+      setItemDTO({
+        ...itemDTO,
+        categoryID: itemDTO.categoryID.filter((id) => id !== categoryId),
+      });
+    } else {
+      setItemDTO({
+        ...itemDTO,
+        categoryID: [...itemDTO.categoryID, categoryId],
+      });
+    }
+  };
+
+  useEffect(() => {
+    getCategories();
+  }, []);
+
+  const getCategories = async () => {
+    try {
+      const endpoint = `${API_BASE_URL}/category/get-categories`;
+      const res = await axios.get(endpoint, header);
+      if (res.data.responseCode === 0) {
+        setCategories(res.data.data);
+        console.log("Categories : ", categories);
+      } else {
+        createToast("An Internal Error Occured");
+      }
+    } catch (error) {
+      createToast("Error Fetching categories.");
+    }
+  };
+
+  const onInputChange = (e) => {
+    setItemDTO({ ...itemDTO, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // You can send a request to your API here with the form data
-    const formData = { title, description, photo, price };
-    console.log("Form data submitted:", formData);
+    if (itemDTO.categoryID.length === 0) {
+      createToast("Please select at least one category.");
+      return;
+    }
+    console.log("Items : ", itemDTO);
+    try {
+      const endpoint = `${API_BASE_URL}/items/save`;
+      const res = await axios.post(endpoint, itemDTO, header);
+      if (res.data.responseCode === 0) {
+        console.log(itemDTO);
+        success();
+        setTimeout(() => {
+          navigate("/home");
+        }, 4000);
+      } else {
+        createToast("Error Saving Data");
+      }
+    } catch (error) {
+      createToast("An error occurred while Creating Data.");
+    }
   };
 
   const handleImageUpload = async (e) => {
@@ -44,140 +128,169 @@ function AddItem() {
         })
           .then((response) => response.json())
           .then((data) => {
-            setImageURL(data.url);
-            setImageFile(file);
+            setItemDTO({ ...itemDTO, itemPhoto: data.url });
             document.getElementById("image").style.display = "none";
           })
           .catch((error) => {
-            toast.error("Error Uploading Image", {
-              position: "top-right",
-              autoClose: 3000,
-              hideProgressBar: false,
-              closeOnClick: false,
-              pauseOnHover: true,
-              draggable: false,
-              progress: undefined,
-              theme: "colored",
-            });
+            createToast("Error Uploadig Image!");
           });
       } catch (error) {
-        console.error("Error uploading image:", error);
+        createToast("Error uploading image:", error);
       }
     }
   };
 
-  // const createToast = (message) => {
-  //   toast.error(message, {
-  //     position: "top-right",
-  //     autoClose: 5000,
-  //     hideProgressBar: false,
-  //     closeOnClick: false,
-  //     pauseOnHover: true,
-  //     draggable: false,
-  //     progress: undefined,
-  //     theme: "colored",
-  //   });
-  // };
+  const createToast = (message) => {
+    toast.error(message, {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: false,
+      progress: undefined,
+      theme: "colored",
+    });
+  };
 
-  return (
-    <div className="max-w-lg mx-auto mt-8 p-4">
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick={false}
-        rtl={false}
-        pauseOnFocusLoss
-        draggable={false}
-        pauseOnHover
-        theme="colored"
-      />
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
-      >
-        <h2 className="text-2xl font-bold mb-4 text-orange-600">
-          Add New Item
-        </h2>
-        <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="title"
-          >
-            Title
-          </label>
-          <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="title"
-            type="text"
-            placeholder="Item Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="description"
-          >
-            Description
-          </label>
-          <textarea
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="description"
-            placeholder="Item Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            required
-          />
-        </div>
-        <div className="mb-4 flex items-center flex-col">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="photo"
-          >
-            Item Photo
-          </label>
-          <input
-            type="file"
-            id="image"
-            accept="mage/png, image/jpeg"
-            onChange={handleImageUpload}
-          />
-          {imageURL && (
-            <img src={imageURL} alt="Uploaded" style={{ maxWidth: "100px" }} />
-          )}
-        </div>
-        <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="price"
-          >
-            Price
-          </label>
-          <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="price"
-            type="number"
-            placeholder="Item Price"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            required
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            type="submit"
-          >
-            Create Item
-          </button>
-        </div>
-      </form>
-    </div>
-  );
+  if (isloggedIn) {
+    return (
+      <div className="max-w-lg mx-auto mt-8 p-4">
+        {contextHolder}
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick={false}
+          rtl={false}
+          pauseOnFocusLoss
+          draggable={false}
+          pauseOnHover
+          theme="colored"
+        />
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
+        >
+          {/* <FontAwesomeIcon icon="fa-solid fa-arrow-left-long" /> */}
+          <span className="text-2xl font-bold mb-5 text-orange-600">
+            Add New Item
+          </span>
+          <div className="mb-4">
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="title"
+            >
+              Title
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="title"
+              type="text"
+              placeholder="Item Title"
+              name="title"
+              value={itemDTO.title}
+              onChange={(e) => onInputChange(e)}
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="description"
+            >
+              Description
+            </label>
+            <textarea
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="description"
+              placeholder="Item Description"
+              value={itemDTO.description}
+              name="description"
+              onChange={(e) => onInputChange(e)}
+              required
+            />
+          </div>
+          <div className="mb-4 flex items-center flex-col">
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="photo"
+            >
+              Item Photo
+            </label>
+            <input
+              type="file"
+              id="image"
+              accept="image/png, image/jpeg"
+              onChange={handleImageUpload}
+            />
+            {itemDTO.itemPhoto && (
+              <img
+                src={itemDTO.itemPhoto}
+                alt="Uploaded"
+                style={{ maxWidth: "100px" }}
+              />
+            )}
+          </div>
+          <div className="mb-4">
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="price"
+            >
+              Price
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="price"
+              name="price"
+              type="number"
+              placeholder="Item Price"
+              value={itemDTO.price}
+              onChange={(e) => onInputChange(e)}
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label
+              className="block text-orange-600 text-sm font-bold mb-2"
+              htmlFor="categories"
+            >
+              Select Categories
+            </label>
+            <div>
+              {categories.map((category) => (
+                <label
+                  key={category.id}
+                  className="block text-gray-700 text-sm font-bold mb-2"
+                >
+                  <input
+                    type="checkbox"
+                    value={category.id}
+                    checked={itemDTO.categoryID.includes(category.id)}
+                    onChange={() => handleCategoryChange(category.id)}
+                  />
+                  {category.categoryName}
+                </label>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center justify-between">
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              type="submit"
+            >
+              Create Item
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  } else {
+    createToast("Login First");
+    navigate("/auth");
+  }
 }
 
 export default AddItem;

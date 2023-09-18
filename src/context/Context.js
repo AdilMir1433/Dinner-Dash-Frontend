@@ -43,6 +43,7 @@ export function ContextProvider({ children }) {
     role: "",
     email: "",
   });
+
   const [isloggedIn, setisLoggedIn] = useState(false);
   const [token, setToken] = useState("");
 

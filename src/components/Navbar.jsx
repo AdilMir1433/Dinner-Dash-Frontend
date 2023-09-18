@@ -16,18 +16,37 @@ import {
   MdLocalPizza,
   MdDelete,
 } from "react-icons/md";
-import { useUser } from "../context/Context";
+import { useLogin, useUser } from "../context/Context";
 import { useNavigate } from "react-router-dom";
 
 function Navbar() {
   const navigate = useNavigate();
   const [nav, setNav] = useState(false);
   const user = useUser();
+  const isLoggedIn = useLogin();
   const role = user.role;
 
   const addItem = () => {
     navigate("/add-item");
   };
+
+  const createCategory = () => {
+    navigate("/add-category");
+  };
+
+  const generateRandomName = () => {
+    const randomSuffix = Math.floor(Math.random() * 9999);
+    const storedName = localStorage.getItem("guestName");
+    if (storedName) {
+      return storedName;
+    }
+    const name = `Guest${randomSuffix}`;
+    localStorage.setItem("guestName", name);
+    return name;
+  };
+
+  const defaultImage =
+    "https://static.vecteezy.com/system/resources/previews/009/734/564/original/default-avatar-profile-icon-of-social-media-user-vector.jpg";
 
   return (
     <div className="max-w-[1640px] mx-auto flex justify-between items-center p-4">
@@ -83,6 +102,25 @@ function Navbar() {
         <h2 className="text-2xl p-4">
           Roti <span className="font-bold">Scnz</span>
         </h2>
+        {isLoggedIn ? (
+          <div className="flex flex-col items-center mt-4">
+            <img
+              src={defaultImage} // Replace with your default avatar SVG
+              alt="User Avatar"
+              className="w-14 h-14 rounded-full"
+            />
+            <p className=" text-lg text-gray-600 mt-1">{user.displayName}</p>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center mt-4">
+            <img
+              src={defaultImage} // Replace with your default avatar SVG
+              alt="User Avatar"
+              className="w-14 h-14 rounded-full"
+            />
+            <p className="text-lg text-gray-600 mt-1">{generateRandomName()}</p>
+          </div>
+        )}
         <nav>
           <ul className="flex flex-col p-4 text-gray-800">
             <li className="text-xl py-4 flex hover:cursor-pointer">
@@ -109,10 +147,10 @@ function Navbar() {
             </li>
             <li className="text-xl py-4 flex hover:cursor-pointer">
               {role === "ADMINISTRATOR" ? (
-                <>
+                <div className="flex w-full" onClick={() => createCategory()}>
                   <MdLocalPizza size={25} className="mr-4" /> Create New
                   Category
-                </>
+                </div>
               ) : (
                 <>
                   <FaWallet size={25} className="mr-4" /> Wallet
