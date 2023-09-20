@@ -8,7 +8,10 @@ export const loginContext = React.createContext();
 export const updateLoginContex = React.createContext();
 export const tokenContext = React.createContext();
 export const updateTokenContext = React.createContext();
-
+export const cartContext = React.createContext();
+export const updateCartContext = React.createContext();
+export const userCartContext = React.createContext();
+export const updateUserCartContext = React.createContext();
 //custom hooks to use the contexts
 
 export function useUser() {
@@ -35,6 +38,22 @@ export function useTokenUpdate() {
   return useContext(updateTokenContext);
 }
 
+export function useCart() {
+  return useContext(cartContext);
+}
+
+export function useCartUpdate() {
+  return useContext(updateCartContext);
+}
+
+export function useUserCart() {
+  return useContext(userCartContext);
+}
+
+export function useUserCartUpdate() {
+  return useContext(updateUserCartContext);
+}
+
 export function ContextProvider({ children }) {
   const [user, setUser] = useState({
     id: "",
@@ -43,6 +62,9 @@ export function ContextProvider({ children }) {
     role: "",
     email: "",
   });
+
+  const [cart, setCart] = useState([]);
+  const [userCart, setUserCart] = useState([]);
 
   const [isloggedIn, setisLoggedIn] = useState(false);
   const [token, setToken] = useState("");
@@ -59,6 +81,14 @@ export function ContextProvider({ children }) {
     setToken(newToken);
   }
 
+  const updateCart = (newCart) => {
+    setCart(newCart);
+  };
+
+  const updateUserCart = (newCart) => {
+    setUserCart(newCart);
+  };
+
   return (
     <userContext.Provider value={user}>
       <updateUserContext.Provider value={updateUser}>
@@ -66,7 +96,15 @@ export function ContextProvider({ children }) {
           <updateLoginContex.Provider value={updateLoginState}>
             <tokenContext.Provider value={token}>
               <updateTokenContext.Provider value={updateToken}>
-                {children}
+                <cartContext.Provider value={cart}>
+                  <updateCartContext.Provider value={updateCart}>
+                    <userCartContext.Provider value={userCart}>
+                      <updateUserCartContext.Provider value={updateUserCart}>
+                        {children}
+                      </updateUserCartContext.Provider>
+                    </userCartContext.Provider>
+                  </updateCartContext.Provider>
+                </cartContext.Provider>
               </updateTokenContext.Provider>
             </tokenContext.Provider>
           </updateLoginContex.Provider>

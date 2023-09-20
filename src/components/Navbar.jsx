@@ -5,9 +5,9 @@ import {
   AiOutlineMenu,
   AiOutlineSearch,
 } from "react-icons/ai";
-import { BsFillCartFill, BsFillSafeFill } from "react-icons/bs";
+import { BsFillCartFill } from "react-icons/bs";
 import { TbTruckDelivery } from "react-icons/tb";
-import { FaUserFriends, FaWallet } from "react-icons/fa";
+import { FaWallet } from "react-icons/fa";
 import {
   MdHelp,
   MdFavorite,
@@ -15,16 +15,30 @@ import {
   MdSync,
   MdLocalPizza,
   MdDelete,
+  MdLogout,
+  MdLogin,
 } from "react-icons/md";
-import { useLogin, useUser } from "../context/Context";
+import {
+  useLogin,
+  useTokenUpdate,
+  useUser,
+  useUserUpdate,
+} from "../context/Context";
 import { useNavigate } from "react-router-dom";
+import CartSideDrawer from "./CartSideDrawer";
 
 function Navbar() {
   const navigate = useNavigate();
   const [nav, setNav] = useState(false);
   const user = useUser();
   const isLoggedIn = useLogin();
+  const [isCartOpen, setCartOpen] = useState(false);
+
   const role = user.role;
+  const setUser = useUserUpdate();
+  const setToken = useTokenUpdate();
+
+  const naviagate = useNavigate();
 
   const addItem = () => {
     navigate("/add-item");
@@ -45,6 +59,11 @@ function Navbar() {
     return name;
   };
 
+  const auth = () => {
+    setUser(null);
+    setToken(null);
+    naviagate("/auth");
+  };
   const defaultImage =
     "https://static.vecteezy.com/system/resources/previews/009/734/564/original/default-avatar-profile-icon-of-social-media-user-vector.jpg";
 
@@ -75,10 +94,18 @@ function Navbar() {
       </div>
 
       {/* Cart button */}
-      <button className="bg-black text-white hidden md:flex items-center py-2 rounded-full">
+      <button
+        className="bg-black text-white hidden md:flex items-center py-2 rounded-full"
+        onClick={() => setCartOpen(!isCartOpen)}
+      >
         <BsFillCartFill size={20} className="mr-2" />
         Cart
       </button>
+      <CartSideDrawer
+        isOpen={isCartOpen}
+        onClose={() => setCartOpen(false)}
+        cartItems={[]}
+      />
 
       {/* Mobile Menu */}
       {nav ? (
@@ -179,7 +206,7 @@ function Navbar() {
                 </>
               )}
             </li>
-            <li className="text-xl py-4 flex hover:cursor-pointer">
+            {/* <li className="text-xl py-4 flex hover:cursor-pointer">
               {role === "ADMINISTRATOR" ? (
                 <>{""}</>
               ) : (
@@ -187,13 +214,26 @@ function Navbar() {
                   <BsFillSafeFill size={25} className="mr-4" /> Best Ones
                 </>
               )}
-            </li>
-            <li className="text-xl py-4 flex hover:cursor-pointer">
+            </li> */}
+            <li
+              className="text-xl py-4 flex hover:cursor-pointer"
+              onClick={auth}
+            >
               {role === "ADMINISTRATOR" ? (
-                <></>
+                <>
+                  <MdLogout size={25} className="mr-4" /> Logout
+                </>
               ) : (
                 <>
-                  <FaUserFriends size={25} className="mr-4" /> Invite Friends
+                  {isLoggedIn ? (
+                    <>
+                      <MdLogout size={25} className="mr-4" /> Logout
+                    </>
+                  ) : (
+                    <>
+                      <MdLogin size={25} className="mr-4" /> Login
+                    </>
+                  )}
                 </>
               )}
             </li>

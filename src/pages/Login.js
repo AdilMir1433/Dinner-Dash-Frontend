@@ -9,6 +9,9 @@ import {
   useUserUpdate,
   useLoginUpdate,
   useTokenUpdate,
+  useCartUpdate,
+  useCart,
+  useUserCartUpdate,
 } from "../context/Context";
 import API_BASE_URL from "../apiConfig/APIConfig";
 
@@ -20,6 +23,9 @@ export default function Login() {
     setAuthMode(authMode === "signin" ? "signup" : "signin");
   };
 
+  const cart = useCart();
+  const setCart = useCartUpdate();
+  const updateUserCart = useUserCartUpdate();
   const user = useUser(); //custom hook to get user
   const setUser = useUserUpdate(); //custom hook to get setUser
   const setLogin = useLoginUpdate(); //custom hook to change state of login
@@ -61,6 +67,11 @@ export default function Login() {
       });
       setToken(res.data.refreshToken);
       setLogin();
+      createCart(res.data.data.id);
+      if (cart != null) {
+        setCart(cart);
+      }
+      createCart(res.data.data.id);
       navigate("/home");
     } else {
       createToast("Invalid Credentials");
@@ -73,17 +84,36 @@ export default function Login() {
       const endpoint = `${API_BASE_URL}/user/login`;
       const res = await axios.post(endpoint, loginUser);
       if (res.data.responseCode === 0) {
-        setUser(res.data.data, () => {
-          console.log("User : ", user);
-        });
+        console.log("DATA : ", res.data.data);
+        setUser(res.data.data);
         setToken(res.data.refreshToken);
         setLogin();
+        createCart(res.data.data.id);
+        console.log("CART : ", cart);
+        if (cart != null) {
+          setCart(cart);
+        }
         navigate("/home");
       } else {
         createToast("Invalid Credentials");
       }
     } catch (error) {
       createToast("An error occurred while logging in.");
+    }
+  };
+
+  const createCart = async (id) => {
+    try {
+      const endpoint = `${API_BASE_URL}/cart/create-cart/${id}`;
+      const res = await axios.post(endpoint);
+      if (res.data.responseCode === 0) {
+        console.log("Cart : ", res.data.data);
+        updateUserCart(res.data.data);
+      } else {
+        console.log("An Internal Error Occured");
+      }
+    } catch (error) {
+      console.log("Error Creating Cart.", error);
     }
   };
 

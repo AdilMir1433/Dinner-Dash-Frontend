@@ -8,6 +8,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import AddItem from "./pages/AddItem";
 import CreateCategory from "./pages/CreateCategory";
 import ItemDetail from "./pages/ItemDetail";
+import OrderPage from "./pages/OrderPage";
 function App() {
   return (
     <div className="app">
@@ -20,9 +21,7 @@ function App() {
             <Route path="/add-item" Component={() => <AddItem />} />
             <Route path="/add-category" Component={() => <CreateCategory />} />
             <Route path="/view-item/:id" Component={() => <ItemDetail />} />
-            {/* <Route path="/blog/:id" Component={Blog} />
-
-          <Route path="/create-blog" Component={MyEditor} /> */}
+            <Route path="/order" Component={() => <OrderPage />} />
           </Routes>
         </ContextProvider>
       </BrowserRouter>

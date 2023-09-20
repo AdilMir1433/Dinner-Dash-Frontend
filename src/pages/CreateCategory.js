@@ -37,7 +37,7 @@ function CreateCategory() {
       const endpoint = `${API_BASE_URL}/category/create`;
       const res = await axios.post(endpoint, categoryDTO, header);
       if (res.data.responseCode === 0) {
-        console.log(categoryDTO);
+        //console.log(categoryDTO);
         success();
         setTimeout(() => {
           navigate("/home");
