@@ -9,6 +9,7 @@ import AddItem from "./pages/AddItem";
 import CreateCategory from "./pages/CreateCategory";
 import ItemDetail from "./pages/ItemDetail";
 import OrderPage from "./pages/OrderPage";
+import UserOrders from "./pages/UserOrders";
 function App() {
   return (
     <div className="app">
@@ -22,6 +23,7 @@ function App() {
             <Route path="/add-category" Component={() => <CreateCategory />} />
             <Route path="/view-item/:id" Component={() => <ItemDetail />} />
             <Route path="/order" Component={() => <OrderPage />} />
+            <Route path="/user-order/:id" Component={() => <UserOrders />} />
           </Routes>
         </ContextProvider>
       </BrowserRouter>

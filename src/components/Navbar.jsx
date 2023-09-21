@@ -47,6 +47,9 @@ function Navbar() {
   const createCategory = () => {
     navigate("/add-category");
   };
+  const viewOrders = () => {
+    navigate(`/user-order/${user.id}`);
+  };
 
   const generateRandomName = () => {
     const randomSuffix = Math.floor(Math.random() * 9999);
@@ -157,7 +160,12 @@ function Navbar() {
                 </div>
               ) : (
                 <>
-                  <TbTruckDelivery size={25} className="mr-4" /> Orders
+                  <TbTruckDelivery
+                    size={25}
+                    className="mr-4"
+                    onClick={() => viewOrders()}
+                  />{" "}
+                  Orders
                 </>
               )}
             </li>
