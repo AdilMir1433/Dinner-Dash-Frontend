@@ -21,13 +21,14 @@ function AddItem() {
     categoryID: [],
   });
 
-  const [categories, setCategories] = useState([
-    {
-      id: "",
-      categoryName: "",
-      categoryPhoto: "",
-    },
-  ]);
+  // const [categories, setCategories] = useState([
+  //   {
+  //     id: "",
+  //     categoryName: "",
+  //     categoryPhoto: "",
+  //   },
+  // ]);
+  const [categories, setCategories] = useState([]);
 
   const navigate = useNavigate();
 
@@ -38,13 +39,6 @@ function AddItem() {
       type: "success",
       content: "Item Saved Successfully!!",
     });
-  };
-
-  const header = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json", // Set the content type if needed
-    },
   };
 
   const handleCategoryChange = (categoryId) => {
@@ -72,14 +66,16 @@ function AddItem() {
   const getCategories = async () => {
     try {
       const endpoint = `${API_BASE_URL}/category/get-categories`;
-      const res = await axios.get(endpoint, header);
+      const res = await axios.get(endpoint);
       if (res.data.responseCode === 0) {
-        setCategories(res.data.data);
+        setCategories(res.data.data || []);
         console.log("Categories : ", categories);
       } else {
+        setCategories([]);
         createToast("An Internal Error Occured");
       }
     } catch (error) {
+      setCategories([]);
       createToast("Error Fetching categories.");
     }
   };
@@ -97,7 +93,7 @@ function AddItem() {
     console.log("Items : ", itemDTO);
     try {
       const endpoint = `${API_BASE_URL}/items/save`;
-      const res = await axios.post(endpoint, itemDTO, header);
+      const res = await axios.post(endpoint, itemDTO);
       if (res.data.responseCode === 0) {
         console.log(itemDTO);
         success();
@@ -154,139 +150,145 @@ function AddItem() {
   };
 
   if (isloggedIn) {
-    return (
-      <div className="max-w-lg mx-auto mt-8 p-4">
-        {contextHolder}
-        <ToastContainer
-          position="top-right"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick={false}
-          rtl={false}
-          pauseOnFocusLoss
-          draggable={false}
-          pauseOnHover
-          theme="colored"
-        />
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
-        >
-          {/* <FontAwesomeIcon icon="fa-solid fa-arrow-left-long" /> */}
-          <span className="text-2xl font-bold mb-5 text-orange-600">
-            Add New Item
-          </span>
-          <div className="mb-4">
-            <label
-              className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="title"
-            >
-              Title
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="title"
-              type="text"
-              placeholder="Item Title"
-              name="title"
-              value={itemDTO.title}
-              onChange={(e) => onInputChange(e)}
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label
-              className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="description"
-            >
-              Description
-            </label>
-            <textarea
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="description"
-              placeholder="Item Description"
-              value={itemDTO.description}
-              name="description"
-              onChange={(e) => onInputChange(e)}
-              required
-            />
-          </div>
-          <div className="mb-4 flex items-center flex-col">
-            <label
-              className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="photo"
-            >
-              Item Photo
-            </label>
-            <input
-              type="file"
-              id="image"
-              accept="image/png, image/jpeg"
-              onChange={handleImageUpload}
-            />
-            {itemDTO.itemPhoto && (
-              <img
-                src={itemDTO.itemPhoto}
-                alt="Uploaded"
-                style={{ maxWidth: "100px" }}
+    if (categories !== null && categories.length > 0) {
+      return (
+        <div className="max-w-lg mx-auto mt-8 p-4">
+          {contextHolder}
+          <ToastContainer
+            position="top-right"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick={false}
+            rtl={false}
+            pauseOnFocusLoss
+            draggable={false}
+            pauseOnHover
+            theme="colored"
+          />
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
+          >
+            {/* <FontAwesomeIcon icon="fa-solid fa-arrow-left-long" /> */}
+            <span className="text-2xl font-bold mb-5 text-orange-600">
+              Add New Item
+            </span>
+            <div className="mb-4">
+              <label
+                className="block text-gray-700 text-sm font-bold mb-2"
+                htmlFor="title"
+              >
+                Title
+              </label>
+              <input
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="title"
+                type="text"
+                placeholder="Item Title"
+                name="title"
+                value={itemDTO.title}
+                onChange={(e) => onInputChange(e)}
+                required
               />
-            )}
-          </div>
-          <div className="mb-4">
-            <label
-              className="block text-gray-700 text-sm font-bold mb-2"
-              htmlFor="price"
-            >
-              Price
-            </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              id="price"
-              name="price"
-              type="number"
-              placeholder="Item Price"
-              value={itemDTO.price}
-              onChange={(e) => onInputChange(e)}
-              required
-            />
-          </div>
-
-          <div className="mb-4">
-            <label
-              className="block text-orange-600 text-sm font-bold mb-2"
-              htmlFor="categories"
-            >
-              Select Categories
-            </label>
-            <div>
-              {categories.map((category) => (
-                <label
-                  key={category.id}
-                  className="block text-gray-700 text-sm font-bold mb-2"
-                >
-                  <input
-                    type="checkbox"
-                    value={category.id}
-                    checked={itemDTO.categoryID.includes(category.id)}
-                    onChange={() => handleCategoryChange(category.id)}
-                  />
-                  {category.categoryName}
-                </label>
-              ))}
             </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              type="submit"
-            >
-              Create Item
-            </button>
-          </div>
-        </form>
-      </div>
-    );
+            <div className="mb-4">
+              <label
+                className="block text-gray-700 text-sm font-bold mb-2"
+                htmlFor="description"
+              >
+                Description
+              </label>
+              <textarea
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="description"
+                placeholder="Item Description"
+                value={itemDTO.description}
+                name="description"
+                onChange={(e) => onInputChange(e)}
+                required
+              />
+            </div>
+            <div className="mb-4 flex items-center flex-col">
+              <label
+                className="block text-gray-700 text-sm font-bold mb-2"
+                htmlFor="photo"
+              >
+                Item Photo
+              </label>
+              <input
+                type="file"
+                id="image"
+                accept="image/png, image/jpeg"
+                onChange={handleImageUpload}
+              />
+              {itemDTO.itemPhoto && (
+                <img
+                  src={itemDTO.itemPhoto}
+                  alt="Uploaded"
+                  style={{ maxWidth: "100px" }}
+                />
+              )}
+            </div>
+            <div className="mb-4">
+              <label
+                className="block text-gray-700 text-sm font-bold mb-2"
+                htmlFor="price"
+              >
+                Price
+              </label>
+              <input
+                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="price"
+                name="price"
+                type="number"
+                placeholder="Item Price"
+                value={itemDTO.price}
+                onChange={(e) => onInputChange(e)}
+                required
+              />
+            </div>
+
+            <div className="mb-4">
+              <label
+                className="block text-orange-600 text-sm font-bold mb-2"
+                htmlFor="categories"
+              >
+                Select Categories
+              </label>
+              <div>
+                {categories &&
+                  categories.map((category) => (
+                    <label
+                      key={category.id}
+                      className="block text-gray-700 text-sm font-bold mb-2"
+                    >
+                      <input
+                        type="checkbox"
+                        value={category.id}
+                        checked={itemDTO.categoryID.includes(category.id)}
+                        onChange={() => handleCategoryChange(category.id)}
+                      />
+                      {category.categoryName}
+                    </label>
+                  ))}
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <button
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                type="submit"
+              >
+                Create Item
+              </button>
+            </div>
+          </form>
+        </div>
+      );
+    } else {
+      createToast("Create Category First");
+      navigate("/add-category");
+    }
   } else {
     createToast("Login First");
     navigate("/auth");
